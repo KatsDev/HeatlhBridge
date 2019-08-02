@@ -1,0 +1,57 @@
+﻿@model List<HealthBridge.BusinessLogic.DTO.PatientDTO>
+@{
+    ViewBag.Title = "Patient List";
+}
+<link href="~/Content/Patient.css" rel="stylesheet" />
+<br />
+<p>
+    @Html.ActionLink("Add New Patient", "New", "Patient", null, new { @class = "btn btn-primary" })
+</p>
+<br />
+<input type="hidden" id="patientCount" value="@ViewBag.PatientCount" />
+<div class="panel panel-primary">
+    <div class="panel-heading"><center><span style="font-size:34px;">Patient Dashboard</span></center></div>
+    <div class="panel-body" id="tableBody">
+        <table style="width:100%;" id="tblPatients" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Patient Id</th>
+                    <th onclick="sortTable(1)">First Name</th>
+                    <th onclick="sortTable(2)">Last Name</th>
+                    <th onclick="sortTable(3)">ID Number</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(x => item.PatientId)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(x => item.FirstName, "lblFirstName" + item.PatientId)
+                            <input type="hidden" id="@("lblFirstName" + item.PatientId)" value="@item.FirstName" />
+                        </td>
+                        <td>
+                            @Html.DisplayFor(x => item.LastName, "lblLastName" + item.PatientId)
+                            <input type="hidden" id="@("lblLastName" + item.PatientId)" value="@item.LastName" />
+                        </td>
+                        <td>
+                            @Html.DisplayFor(x => item.IdNumber)
+                        </td>
+                        <td style="width:15%;">
+                            <a class="btn btn-warning" href="@Url.Action("Edit","Patient",new { patientId = item.PatientId})">
+                                Edit
+                            </a>
+                            <button class="btn btn-danger" value="@item.PatientId" onclick="DeletePatient(@item.PatientId, this)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts{
+    <script src="~/Scripts/app/patients.js"></script>
+}

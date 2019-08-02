@@ -1,0 +1,184 @@
+﻿@model HealthBridge.BusinessLogic.DTO.CompoundInvoiceDTO
+@{
+    ViewBag.Title = "InvoiceForm";
+}
+
+<h2>Invoice Form</h2>
+<br />
+<form id="invoiceForm">
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-2">
+                <strong>Invoice Date:</strong>
+            </div>
+            <div class="col-md-3">
+                @Html.DisplayFor(x => x.InvoiceDetails.InvoiceDateTime)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group">
+            <div class="col-md-2">
+                <strong>Patient:</strong>
+            </div>
+            <div class="col-md-3">
+                @Html.DropDownListFor(x => x.InvoiceDetails.PatientId, new SelectList(ViewBag.PatientDropDown, "PatientId", "DisplayName"), "Select Patient", new { @class = "form-control", id = "ddlPatient" })
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><center><span style="font-size:34px;">Line Items</span></center></div>
+            <div class="panel-body" id="tableBody">
+                @*<div class="col-md-3">
+                        <label style="display:inline-block;">QTY</label>
+                        <input type="number" class="form-control input-group-lg" id="txtQty" />
+                    </div>*@
+                <div class="form-group">
+                    <label for="QTY" class="pull-left">QTY:</label>
+                    <div class="col-sm-2">
+                        <input type="number" min="1" step="1" class="form-control" name="QTY" id="txtQty" style="width:90px;">
+                    </div>
+
+                    <label for="code" class="pull-left">Code:</label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" name="code" id="txtCode" style="width:120px;">
+                    </div>
+
+                    <label for="description" class="pull-left">Description:</label>
+                    <div class="col-sm-3">
+                        <textarea class="form-control" name="description" id="txtDescription"></textarea>
+                    </div>
+
+                    <label for="amount" class="pull-left">Total:</label>
+                    <div class="col-sm-1">
+                        <input type="number" min="1" class="form-control" name="amount" id="txtLineItemTotal" style="width:150px;">
+                    </div>
+                </div>
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group pull-left">
+                            @if (Model.InvoiceDetails.InvoiceId != 0)
+                            {
+                                <button type="button" class="btn btn-info" id="btnUpdateInvoice">Update Invoice</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-info" id="btnSaveInvoice">Save Invoice</button>
+                            }
+                        </div>
+                        <div class="form-group pull-right">
+                            <button type="button" class="btn btn-danger" id="btnAddLineItem">Add To Invoice</button>
+                        </div>
+                    </div>
+                </div>
+                <table style="width:100%;" id="tblLineItems" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>QTY</th>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Total</th>
+                            <th style="width:20%;">Options</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div>
+                </div>
+                <div class="form-group">
+                    <div class="pull-right">
+                        <label class="pull-left">Total:</label>
+                        <div class="col-sm-2 pull-right">
+                            <label id="lblTotalInvoiceAmount">R</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<input type="hidden" id="tblColCount" value="1" />
+@Html.HiddenFor(x => x.InvoiceDetails.InvoiceId)
+
+@section scripts{
+    <script>
+        var lineItems = [];
+        console.log($("#tblColCount").val());
+        $("#btnAddLineItem").click(function () {
+            var qty = $("#txtQty").val()
+            var code = $("#txtCode").val();
+            var description = $("#txtDescription").val();
+            var lineTotal = $("#txtLineItemTotal").val();
+
+            var newLineItem = {
+                InvoiceLineId: $("#tblColCount").val(),
+                QTY: qty,
+                Code: code,
+                Description: description,
+                LineTotal: lineTotal
+            }
+            lineItems.push(newLineItem);
+            console.info("Line Items", lineItems);
+            var currColCount = parseInt($("#tblColCount").val());
+            //$('#tblLineItems').append('<tr><td>' + qty + '</td><td>' + code + '</td><td>' + description + '</td><td>' + lineTotal + '</td></tr>');
+            $('#tblLineItems > tbody:first').append('<tr id="lineItem' + currColCount + '"><td id="qtytd' + currColCount + '">' + qty + '</td><td id="codetd' + currColCount + '">' + code + '</td><td id="desctd' + currColCount + '">' + description + '</td><td id="linetottd' + currColCount + '">R ' + lineTotal +
+                '</td><td><button type="button" onclick="EditLineItem(' + currColCount + ')" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;<button onclick="DeleteLineItemFromTable(this)" class="btn btn-danger btn-sm" style="width:45%">Delete</td></tr>');
+
+            var newColCount = parseInt($("#tblColCount").val());
+            newColCount = newColCount + 1;
+            $("#tblColCount").val(newColCount);
+            console.info("Col Count", newColCount);
+            $("#txtQty").val("");
+            $("#txtCode").val("");
+            $("#txtDescription").val("");
+            $("#txtLineItemTotal").val("");
+        });
+
+        $("#btnSaveInvoice").click(function () {
+            var invoiceDetail = {
+                PatientId: $("#ddlPatient").val(),
+            }
+
+            $.ajax(
+                {
+                    url: "/api/Invoices/savenewinvoice/",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ InvoiceDetails: invoiceDetail, InvoiceLineItems: lineItems }),
+                    success: function (result) {
+                        bootbox.alert({
+                            message: result,
+                            size: 'small',
+                            centerVertical: true
+                        });
+                        $("#tblLineItems > tbody").html("");
+                        $("#txtQty").val("");
+                        $("#txtCode").val("");
+                        $("#txtDescription").val("");
+                        $("#txtLineItemTotal").val("");
+                        $('#ddlPatient').val('');
+                    }
+                }
+            );
+        });
+
+        function DeleteLineItemFromTable(el) {
+            $(el).closest('tr').remove();
+        }
+
+        function EditLineItem(el) {
+            //alert('test');
+            $("#txtQty").val($("#qtytd" + el).text());
+            $("#txtCode").val($("#codetd" + el).text());
+            $("#txtDescription").val($("#desctd" + el).text());
+            var lineTotal = $("#linetottd" + el).text();
+            lineTotal = lineTotal.replace('R ', '');
+            $("#txtLineItemTotal").val(lineTotal);
+        }
+    </script>
+}

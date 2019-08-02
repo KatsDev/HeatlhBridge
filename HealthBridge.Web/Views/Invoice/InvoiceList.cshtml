@@ -1,0 +1,55 @@
+﻿@model List<HealthBridge.BusinessLogic.DTO.InvoiceDTO>
+@{
+    ViewBag.Title = "Invoice List";
+}
+<link href="~/Content/Invoice.css" rel="stylesheet" />
+<br />
+<p>
+    @Html.ActionLink("Generate Invoice", "New", "Invoice", null, new { @class = "btn btn-primary" })
+</p>
+<br />
+
+<div class="panel panel-primary">
+    <div class="panel-heading"><center><span style="font-size:34px;">Invoice Dashboard</span></center></div>
+    <div class="panel-body">
+        <table style="width:100%;" id="tblInvoice" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Invoice ID</th>
+                    <th onclick="sortTable(1)">Invoice Date</th>
+                    <th onclick="sortTable(2)">Patient</th>
+                    <th onclick="sortTable(3)">Invoice Total</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(x => item.InvoiceId)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(x => item.InvoiceDateTime)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(x => item.patient.FirstName) @Html.DisplayFor(x => item.patient.LastName)
+                        </td>
+                        <td>
+                            R @Html.DisplayFor(x => item.InvoiceTotal)
+                        </td>
+                        <td style="width:15%;">
+                            <a class="btn btn-warning" href="@Url.Action("Edit","Patient",new { patientId = item.PatientId})">
+                                Edit
+                            </a>
+                            <button class="btn btn-danger" value="@item.PatientId" onclick="alert(@item.PatientId)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts{
+<script src="~/Scripts/app/invoice.js"></script>
+}
