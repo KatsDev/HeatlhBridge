@@ -138,5 +138,28 @@ namespace HealthBridge.Web.Controllers.api
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("getinvoicewithlineitems/{invoiceId}")]
+        public async Task<IHttpActionResult> GetInvoiceWithLineItems(long invoiceId)
+        {
+            try
+            {
+                var result = await _invoice.GetInvoiceWithLineItems(invoiceId);
+
+                if(result != null)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

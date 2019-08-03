@@ -16,5 +16,6 @@ namespace HealthBridge.BusinessLogic.Interfaces
         Task<bool> patientInvoiceExists(long patientId);
         Task<int> UpdateInvoice(InvoiceUpdateDTO compoundInvoice);
         Task<int> DeleteInvoiceLineItem(long InvoiceLineID);
+        Task<CompoundInvoiceDTO> GetInvoiceWithLineItems(long invoiceId);
     }
 }

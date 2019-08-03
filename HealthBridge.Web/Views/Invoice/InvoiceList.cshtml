@@ -39,10 +39,10 @@
                             R @Html.DisplayFor(x => item.InvoiceTotal)
                         </td>
                         <td style="width:15%;">
-                            <a class="btn btn-warning" href="@Url.Action("Edit","Patient",new { patientId = item.PatientId})">
+                            <a class="btn btn-warning" href="@Url.Action("EditPatientInvoice","Invoice",new { invoiceId = item.InvoiceId})">
                                 Edit
                             </a>
-                            <button class="btn btn-danger" value="@item.PatientId" onclick="alert(@item.PatientId)">Delete</button>
+                            <button class="btn btn-danger" value="@item.InvoiceId" onclick="alert(@item.InvoiceId)">Delete</button>
                         </td>
                     </tr>
                 }

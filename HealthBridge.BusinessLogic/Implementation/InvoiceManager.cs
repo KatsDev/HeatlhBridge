@@ -1,4 +1,5 @@
 ﻿using HealthBridge.BusinessLogic.DTO;
+using HealthBridge.BusinessLogic.Helper;
 using HealthBridge.BusinessLogic.Interfaces;
 using HealthBridge.DataAccess;
 using HealthBridge.DataAccess.Implementation;
@@ -31,7 +32,7 @@ namespace HealthBridge.BusinessLogic.Implementation
                 var invoiceList = new List<InvoiceDTO>();
                 var invoicesInDB = await _invoiceRepository.GetAll();
 
-                foreach(var invoice in invoicesInDB)
+                foreach (var invoice in invoicesInDB)
                 {
                     InvoiceDTO invoiceDTO = new InvoiceDTO();
                     invoiceDTO.InvoiceId = invoice.InvoiceId;
@@ -59,7 +60,7 @@ namespace HealthBridge.BusinessLogic.Implementation
 
                 var invoiceInDb = await _invoiceRepository.GetById(invoiceId);
 
-                if(invoiceInDb != null)
+                if (invoiceInDb != null)
                 {
                     invoice.InvoiceDateTime = invoiceInDb.InvoiceDateTime;
                     invoice.InvoiceId = invoiceInDb.InvoiceId;
@@ -86,7 +87,7 @@ namespace HealthBridge.BusinessLogic.Implementation
                 Invoice invoiceDB = new Invoice();
 
                 decimal invoiceTotalAmount = compoundInvoice.InvoiceLineItems.Sum(item => item.LineTotal);
-                
+
                 invoiceDB.InvoiceDateTime = DateTime.Now;
                 invoiceDB.PatientId = compoundInvoice.InvoiceDetails.PatientId;
                 invoiceDB.InvoiceTotal = invoiceTotalAmount;
@@ -115,7 +116,7 @@ namespace HealthBridge.BusinessLogic.Implementation
 
                 var allInvoiceLines = await _invoiceLineRepository.Search(x => x.InvoiceId == invoiceId);
 
-                foreach(var invoiceLineItems in allInvoiceLines.Where(x => x.InvoiceId == invoiceId))
+                foreach (var invoiceLineItems in allInvoiceLines.Where(x => x.InvoiceId == invoiceId))
                 {
                     _invoiceLineRepository.Delete(invoiceLineItems.InvoiceLineId);
                 }
@@ -194,6 +195,52 @@ namespace HealthBridge.BusinessLogic.Implementation
                     return true;
 
                 return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<CompoundInvoiceDTO> GetInvoiceWithLineItems(long invoiceId)
+        {
+            try
+            {
+                CompoundInvoiceDTO compoundInvoice = new CompoundInvoiceDTO();
+
+                var invoiceExists = await _invoiceRepository.Search(x => x.InvoiceId == invoiceId);
+
+                if (invoiceExists.Count > 0)
+                {
+                    var invoiceHeader = await _invoiceRepository.GetById(invoiceId);
+                    var invoiceLineItems = await _invoiceLineRepository.Search(x => x.InvoiceId == invoiceId);
+
+                    compoundInvoice.InvoiceDetails.InvoiceDateTime = invoiceHeader.InvoiceDateTime;
+                    compoundInvoice.InvoiceDetails.InvoiceId = invoiceHeader.InvoiceId;
+                    compoundInvoice.InvoiceDetails.InvoiceTotal = invoiceHeader.InvoiceTotal;
+                    compoundInvoice.InvoiceDetails.PatientId = invoiceHeader.PatientId;
+
+                    foreach (var lineItem in invoiceLineItems)
+                    {
+                        InvoiceLineDTO lineItemsToAdd = new InvoiceLineDTO();
+                        lineItemsToAdd.Code = lineItem.Code;
+                        lineItemsToAdd.Description = lineItem.Description;
+                        lineItemsToAdd.InvoiceId = lineItem.InvoiceId;
+                        lineItemsToAdd.InvoiceLineId = lineItem.InvoiceLineId;
+                        lineItemsToAdd.LineTotal = lineItem.LineTotal;
+                        var Qty = Convert.ToDecimal(lineItem.Qty);
+                        var QTYConvert = DataConverter.ToSingle(Qty);
+                        lineItemsToAdd.Qty = QTYConvert;
+
+                        compoundInvoice.InvoiceLineItems.Add(lineItemsToAdd);
+                    }
+
+                    return compoundInvoice;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception ex)
             {

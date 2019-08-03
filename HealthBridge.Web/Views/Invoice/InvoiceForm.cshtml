@@ -1,6 +1,7 @@
 ﻿@model HealthBridge.BusinessLogic.DTO.CompoundInvoiceDTO
 @{
     ViewBag.Title = "InvoiceForm";
+    int i = 0;
 }
 
 <h2>Invoice Form</h2>
@@ -67,11 +68,22 @@
                             }
                             else
                             {
-                                <button type="button" class="btn btn-info" id="btnSaveInvoice">Save Invoice</button>
+                                <button type="button" class="btn btn-info" id="btnSaveInvoice" disabled>Save Invoice</button>
                             }
                         </div>
                         <div class="form-group pull-right">
-                            <button type="button" class="btn btn-danger" id="btnAddLineItem">Add To Invoice</button>
+                            @if (Model.InvoiceDetails.InvoiceId == 0)
+                            {
+                                <button type="button" class="btn btn-primary" id="btnAddLineItem">Add To Invoice</button>
+                                <button type="button" class="btn btn-default" id="btnUpdateLineItem">Update Line Item</button>
+                                <button type="button" class="btn btn-danger" id="btnCancelLineItemUpdate">Cancel</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary" id="btnExistingInvoiceAddItem">Add To Invoice</button>
+                                <button type="button" class="btn btn-default" id="btnExistingInvoiceUpdateLineItem">Update Line Item</button>
+                                <button type="button" class="btn btn-danger" id="btnExistingInvoiceCancelLineItemUpdate">Cancel</button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -85,16 +97,33 @@
                             <th style="width:20%;">Options</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        @*check line item list to see for items then add to tbody*@
+                        @if (Model.InvoiceLineItems.Count > 0)
+                        {
+                            foreach (var lineItem in Model.InvoiceLineItems)
+                            {
+                                <tr id="@("lineItem" + i)">
+                                    <td id="@("qtytd" + i)">@lineItem.Qty</td>
+                                    <td id="@("codetd" + i)">@lineItem.Code</td>
+                                    <td id="@("desctd" + i)">@lineItem.Description</td>
+                                    <td id="@("linetottd" + i)">
+                                        R @lineItem.LineTotal.ToString().Replace(",", ".").Trim().Replace(".0000", ".00")
+                                    </td>
+                                    <td>
+                                        <button type="button" onclick="EditLineItem(@i)" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;
+                                        <button onclick="DeleteLineItemFromTable(this, @i)" class="btn btn-danger btn-sm" style="width:45%">Delete</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
                 </table>
                 <div>
                 </div>
                 <div class="form-group">
                     <div class="pull-right">
-                        <label class="pull-left">Total:</label>
-                        <div class="col-sm-2 pull-right">
-                            <label id="lblTotalInvoiceAmount">R</label>
-                        </div>
+                        <label id="lblTotalInvoiceAmount">Total: R</label>
                     </div>
                 </div>
             </div>
@@ -102,19 +131,57 @@
     </div>
 </form>
 
-<input type="hidden" id="tblColCount" value="1" />
-@Html.HiddenFor(x => x.InvoiceDetails.InvoiceId)
+<input type="hidden" id="tblColCount" value="0" />
+@Html.HiddenFor(x => x.InvoiceDetails.InvoiceId, new { id = "hdInvoiceId" })
+<input type="hidden" id="lineEditLineID" value="" />
 
 @section scripts{
     <script>
         var lineItems = [];
-        console.log($("#tblColCount").val());
+        $(document).ready(function () {
+            $("#btnUpdateLineItem").hide();
+            $("#btnCancelLineItemUpdate").hide();
+            $("#btnExistingInvoiceUpdateLineItem").hide();
+            $("#btnExistingInvoiceCancelLineItemUpdate").hide();
+            if ($("#ddlPatient").val() !== '') {
+                var uploadedList = @Html.Raw(Json.Encode(Model.InvoiceLineItems));
+
+                for (var i = 0; i < uploadedList.length; i++) {
+                    var newLineItem = {
+                            InvoiceLineId: i,
+                            QTY: uploadedList[i].Qty,
+                            Code: uploadedList[i].Code,
+                            Description: uploadedList[i].Description,
+                            LineTotal: uploadedList[i].LineTotal
+                    }
+                    lineItems.push(newLineItem);
+                }
+            }
+        });
+
+        $("#ddlPatient").change(function () {
+            if (this.value == '') {
+                $("#btnSaveInvoice").prop("disabled", true);
+            } else {
+                $("#btnSaveInvoice").prop("disabled", false);
+            }
+        });
+
+
+
         $("#btnAddLineItem").click(function () {
             var qty = $("#txtQty").val()
             var code = $("#txtCode").val();
             var description = $("#txtDescription").val();
             var lineTotal = $("#txtLineItemTotal").val();
-
+            if (qty == '' || code == '' || description == '' || lineTotal == '') {
+                bootbox.alert({
+                    message: 'Please enter all line item fields',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
             var newLineItem = {
                 InvoiceLineId: $("#tblColCount").val(),
                 QTY: qty,
@@ -123,27 +190,33 @@
                 LineTotal: lineTotal
             }
             lineItems.push(newLineItem);
-            console.info("Line Items", lineItems);
             var currColCount = parseInt($("#tblColCount").val());
-            //$('#tblLineItems').append('<tr><td>' + qty + '</td><td>' + code + '</td><td>' + description + '</td><td>' + lineTotal + '</td></tr>');
             $('#tblLineItems > tbody:first').append('<tr id="lineItem' + currColCount + '"><td id="qtytd' + currColCount + '">' + qty + '</td><td id="codetd' + currColCount + '">' + code + '</td><td id="desctd' + currColCount + '">' + description + '</td><td id="linetottd' + currColCount + '">R ' + lineTotal +
-                '</td><td><button type="button" onclick="EditLineItem(' + currColCount + ')" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;<button onclick="DeleteLineItemFromTable(this)" class="btn btn-danger btn-sm" style="width:45%">Delete</td></tr>');
+                '</td><td><button type="button" onclick="EditLineItem(' + currColCount + ')" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;<button onclick="DeleteLineItemFromTable(this, ' + currColCount + ')" class="btn btn-danger btn-sm" style="width:45%">Delete</button></td></tr>');
 
             var newColCount = parseInt($("#tblColCount").val());
             newColCount = newColCount + 1;
             $("#tblColCount").val(newColCount);
-            console.info("Col Count", newColCount);
-            $("#txtQty").val("");
-            $("#txtCode").val("");
-            $("#txtDescription").val("");
-            $("#txtLineItemTotal").val("");
+            ClearTextboxes();
+            $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
         });
 
         $("#btnSaveInvoice").click(function () {
             var invoiceDetail = {
-                PatientId: $("#ddlPatient").val(),
+                PatientId: $("#ddlPatient").val()
             }
-
+            if ($("#ddlPatient").val() == '') {
+                bootbox.alert({
+                    message: 'Please select a patient',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
+            //Validate that a patient has been selected
+            //Validate that there are line items
+            //If 1 of the above validations fail do not save a new invoice
+            //Alert the user with validation errors
             $.ajax(
                 {
                     url: "/api/Invoices/savenewinvoice/",
@@ -157,28 +230,105 @@
                             centerVertical: true
                         });
                         $("#tblLineItems > tbody").html("");
-                        $("#txtQty").val("");
-                        $("#txtCode").val("");
-                        $("#txtDescription").val("");
-                        $("#txtLineItemTotal").val("");
-                        $('#ddlPatient').val('');
+                        ClearTextboxes();
+                        $("#tblColCount").val(1);
+                        $("#lineEditLineID").val("");
+                        lineItems = [];
+                        $("#lineEditLineID").text('');
                     }
                 }
             );
         });
 
-        function DeleteLineItemFromTable(el) {
+        function DeleteLineItemFromTable(el, colIndex) {
             $(el).closest('tr').remove();
-        }
+            $.each(lineItems, function (i) {
+                if (lineItems[i].InvoiceLineId == colIndex) {
+                    lineItems.splice(i, 1);
+                    return false;
+                }
+            });
+            $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
+        };
+
+        function ClearTextboxes() {
+            $("#txtQty").val("");
+            $("#txtCode").val("");
+            $("#txtDescription").val("");
+            $("#txtLineItemTotal").val("");
+        };
 
         function EditLineItem(el) {
-            //alert('test');
+            //lineEditMode
+            console.log($("#hdInvoiceId").val());
+            if ($("#hdInvoiceId").val() != 0) {
+                $("#btnExistingInvoiceUpdateLineItem").show();
+                $("#btnExistingInvoiceCancelLineItemUpdate").show();
+                $("#btnExistingInvoiceAddItem").hide();
+            } else {
+                $("#btnUpdateLineItem").show();
+                $("#btnCancelLineItemUpdate").show();
+                $("#btnAddLineItem").hide();
+            }
+            $("#lineEditLineID").val(el);
+
+
             $("#txtQty").val($("#qtytd" + el).text());
             $("#txtCode").val($("#codetd" + el).text());
             $("#txtDescription").val($("#desctd" + el).text());
             var lineTotal = $("#linetottd" + el).text();
             lineTotal = lineTotal.replace('R ', '');
-            $("#txtLineItemTotal").val(lineTotal);
+            var lineTot = parseFloat(lineTotal);
+            $("#txtLineItemTotal").val(lineTot);
         }
+
+        $("#btnCancelLineItemUpdate").click(function () {
+            $("#btnUpdateLineItem").hide();
+            $("#btnCancelLineItemUpdate").hide();
+            $("#btnAddLineItem").show();
+        });
+
+        $("#btnUpdateLineItem").click(function () {
+
+            for (var i in lineItems) {
+                if (lineItems[i].InvoiceLineId == $("#lineEditLineID").val()) {
+                    lineItems[i].Description = $("#txtDescription").val();
+                    lineItems[i].QTY = $("#txtQty").val();
+                    lineItems[i].LineTotal = $("#txtLineItemTotal").val();
+                    lineItems[i].Code = $("#txtCode").val();
+                    $("#desctd" + lineItems[i].InvoiceLineId).text(lineItems[i].Description);
+                    $("#qtytd" + lineItems[i].InvoiceLineId).text(lineItems[i].QTY);
+                    $("#codetd" + lineItems[i].InvoiceLineId).text(lineItems[i].Code);
+                    $("#linetottd" + lineItems[i].InvoiceLineId).text('R ' + lineItems[i].LineTotal);
+                    break; //Stop this loop, we found it!
+                }
+            }
+            ClearTextboxes();
+            $("#btnUpdateLineItem").hide();
+            $("#btnCancelLineItemUpdate").hide();
+            $("#btnAddLineItem").show();
+        });
+
+        $("#btnExistingInvoiceUpdateLineItem").click(function () {
+
+            for (var i in lineItems) {
+                if (lineItems[i].InvoiceLineId == $("#lineEditLineID").val()) {
+                    lineItems[i].Description = $("#txtDescription").val();
+                    lineItems[i].QTY = $("#txtQty").val();
+                    lineItems[i].LineTotal = $("#txtLineItemTotal").val();
+                    lineItems[i].Code = $("#txtCode").val();
+                    $("#desctd" + lineItems[i].InvoiceLineId).text(lineItems[i].Description);
+                    $("#qtytd" + lineItems[i].InvoiceLineId).text(lineItems[i].QTY);
+                    $("#codetd" + lineItems[i].InvoiceLineId).text(lineItems[i].Code);
+                    $("#linetottd" + lineItems[i].InvoiceLineId).text('R ' + lineItems[i].LineTotal);
+                    break; //Stop this loop, we found it!
+                }
+            }
+            // Update the database here for this line item only
+            ClearTextboxes();
+            $("#btnExistingInvoiceUpdateLineItem").hide();
+                $("#btnExistingInvoiceCancelLineItemUpdate").hide();
+                $("#btnExistingInvoiceAddItem").show();
+        });
     </script>
 }

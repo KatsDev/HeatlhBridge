@@ -55,6 +55,7 @@
     <Compile Include="DTO\InvoiceUpdateDTO.cs" />
     <Compile Include="DTO\PatientDropDownDTO.cs" />
     <Compile Include="DTO\PatientDTO.cs" />
+    <Compile Include="Helper\DataConverter.cs" />
     <Compile Include="Implementation\InvoiceLineManager.cs" />
     <Compile Include="Implementation\InvoiceManager.cs" />
     <Compile Include="Implementation\PatientManager.cs" />

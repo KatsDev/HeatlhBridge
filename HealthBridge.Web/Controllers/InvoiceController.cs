@@ -84,5 +84,60 @@ namespace HealthBridge.Web.Controllers
                 throw;
             }
         }
+
+        public ActionResult EditPatientInvoice(long invoiceId)
+        {
+            try
+            {
+                CompoundInvoiceDTO compoundInvoice = new CompoundInvoiceDTO();
+
+                using (var client = new HttpClient())
+                {
+                    List<PatientDropDownDTO> patientDropDownDisplay = new List<PatientDropDownDTO>();
+
+                    client.BaseAddress = new Uri("https://localhost:44305/api/");
+
+                    var responseTask = client.GetAsync("Patients/getpatientsdropdowndisplay");
+
+                    responseTask.Wait();
+
+                    var result = responseTask.Result;
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var readTask = result.Content.ReadAsAsync<List<PatientDropDownDTO>>();
+
+                        readTask.Wait();
+
+                        patientDropDownDisplay = readTask.Result;
+
+                        ViewBag.PatientDropDown = patientDropDownDisplay;
+                    }
+                }
+
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("https://localhost:44305/api/");
+                    var responseTask = client.GetAsync("Invoices/getinvoicewithlineitems/" + invoiceId);
+                    responseTask.Wait();
+
+                    var result = responseTask.Result;
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var readTask = result.Content.ReadAsAsync<CompoundInvoiceDTO>();
+
+                        readTask.Wait();
+
+                        compoundInvoice = readTask.Result;
+                    }
+                }
+                return View("InvoiceForm", compoundInvoice);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
