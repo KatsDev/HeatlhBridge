@@ -12,5 +12,7 @@ namespace HealthBridge.BusinessLogic.Interfaces
         Task SaveInvoiceLineItems(List<InvoiceLineDTO> InvoiceLineItems, long InvoiceId);
         Task UpdateInvoiceLineItems(InvoiceLineDTO InvoiceLineItem);
         Task<decimal> CalculateInvoiceTotal(long InvoiceId);
+        Task AddNewItemToExistingInvoiceLineItems(InvoiceLineDTO newLineItem);
+        //Task DeleteLineItem(long InvoiceLineID);
     }
 }

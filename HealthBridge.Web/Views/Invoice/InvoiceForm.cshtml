@@ -134,20 +134,11 @@
 <input type="hidden" id="tblColCount" value="0" />
 @Html.HiddenFor(x => x.InvoiceDetails.InvoiceId, new { id = "hdInvoiceId" })
 <input type="hidden" id="lineEditLineID" value="" />
-@*@if (Model.InvoiceLineItems.Count > 0)
-    {
-        <input type="hidden" id"hdInitialLineID" value="@Model.InvoiceLineItems[0].InvoiceLineId" />
-    }
-    else
-    {
-        <input type="hidden" id"hdInitialLineID" value="" />
-    }*@
-
 
 @section scripts{
     <script>
         var lineItems = [];
-    $(document).ready(function () {
+            $(document).ready(function () {
             $("#ddlPatient").attr("disabled", false);
             $("#btnUpdateLineItem").hide();
             $("#btnCancelLineItemUpdate").hide();
@@ -179,7 +170,7 @@
         });
 
         $("#ddlPatient").change(function () {
-            if (this.value == '') {
+            if (this.value == '0') {
                 $("#btnSaveInvoice").prop("disabled", true);
             } else {
                 $("#btnSaveInvoice").prop("disabled", false);
@@ -268,6 +259,21 @@
                 }
             });
             $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
+            if ($("#hdInvoiceId").val() != 0) {
+            $.ajax({
+                url: "/api/Invoices/deletelineitem/" + colIndex,
+                type: "DELETE",
+                contentType: "application/json",
+                success: function (result) {
+                    bootbox.alert({
+                        message: result,
+                        size: 'small',
+                        centerVertical: true
+                    });
+                    $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
+                    }
+                });
+            }
         };
 
         function ClearTextboxes() {
@@ -336,6 +342,63 @@
             $("#btnUpdateLineItem").hide();
             $("#btnCancelLineItemUpdate").hide();
             $("#btnAddLineItem").show();
+        });
+
+        $("#btnExistingInvoiceAddItem").click(function () {
+            var qty = $("#txtQty").val()
+            var code = $("#txtCode").val();
+            var description = $("#txtDescription").val();
+            var lineTotal = $("#txtLineItemTotal").val();
+            if (qty == '' || code == '' || description == '' || lineTotal == '') {
+                bootbox.alert({
+                    message: 'Please enter all line item fields',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
+
+            var invoiceDetail = {
+                InvoiceId: $("#hdInvoiceId").val(),
+                PatientId: $("#ddlPatient").val()
+            }
+
+            var invoiceLineItemToAdd = {
+                InvoiceLineId: $("#lineEditLineID").val(),
+                InvoiceId: $("#hdInvoiceId").val(),
+                Qty: $("#txtQty").val(),
+                Code: $("#txtCode").val(),
+                Description: $("#txtDescription").val(),
+                LineTotal: $("#txtLineItemTotal").val()
+            }
+
+            $.ajax(
+            {
+                url: "/api/Invoices/addlineitemtoexistinginvoice/",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ InvoiceDetails: invoiceDetail, InvoiceLineItem: invoiceLineItemToAdd }),
+                success: function (result) {
+                    bootbox.alert({
+                        message: result,
+                        size: 'small',
+                        centerVertical: true
+                    });
+                    $("#desctd" + $("#lineEditLineID").val()).text($("#txtDescription").val());
+                    $("#qtytd" + $("#lineEditLineID").val()).text($("#txtQty").val());
+                    $("#codetd" + $("#lineEditLineID").val()).text($("#txtCode").val());
+                    $("#linetottd" + $("#lineEditLineID").val()).text('R ' + $("#txtLineItemTotal").val());
+                    ClearTextboxes();
+                    //$("#tblColCount").val(1);
+                    $("#lineEditLineID").val("");
+                    //lineItems = [];
+                    $("#lineEditLineID").text('');
+                    //$("#hdInvoiceId").val('');
+                    ClearTextboxes();
+                    console.log(lineItems);
+                    $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
+                }
+            });
         });
 
 

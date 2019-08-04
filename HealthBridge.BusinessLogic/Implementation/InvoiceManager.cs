@@ -139,11 +139,44 @@ namespace HealthBridge.BusinessLogic.Implementation
         {
             try
             {
-                var invoiceLineInDB = await _invoiceLineRepository.Search(x => x.InvoiceLineId == InvoiceLineID);
+                var invoiceLineInDB = await _invoiceLineRepository.GetById(InvoiceLineID);
 
-                _invoiceLineRepository.Delete(invoiceLineInDB);
+                if (invoiceLineInDB != null)
+                {
+                    _invoiceLineRepository.Delete(InvoiceLineID);
 
-                var result = await _invoiceLineRepository.Save();
+                    var result = await _invoiceLineRepository.Save();
+
+                    return result;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<int> AddItemToExistingInvoice(InvoiceUpdateDTO compoundInvoice)
+        {
+            try
+            {
+                Invoice invoiceInDB = new Invoice();
+
+                invoiceInDB = await _invoiceRepository.GetById(compoundInvoice.InvoiceDetails.InvoiceId);
+
+                await _invoiceManager.AddNewItemToExistingInvoiceLineItems(compoundInvoice.InvoiceLineItem);
+
+                decimal invoiceTotalAmount = await _invoiceManager.CalculateInvoiceTotal(compoundInvoice.InvoiceDetails.InvoiceId);
+
+                invoiceInDB.InvoiceTotal = invoiceTotalAmount;
+
+                _invoiceRepository.Update(invoiceInDB);
+
+                var result = await _invoiceRepository.Save();
 
                 return result;
             }

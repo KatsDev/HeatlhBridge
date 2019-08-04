@@ -147,7 +147,7 @@ namespace HealthBridge.Web.Controllers.api
             {
                 var result = await _invoice.GetInvoiceWithLineItems(invoiceId);
 
-                if(result != null)
+                if (result != null)
                 {
                     return Ok(result);
                 }
@@ -155,6 +155,44 @@ namespace HealthBridge.Web.Controllers.api
                 {
                     return NotFound();
                 }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("addlineitemtoexistinginvoice")]
+        public async Task<IHttpActionResult> AddLineItemToExistingInvoice(InvoiceUpdateDTO invoiceItem)
+        {
+            try
+            {
+                var result = await _invoice.AddItemToExistingInvoice(invoiceItem);
+
+                if (result > 0)
+                    return Ok("Item Added To Invoice: " + invoiceItem.InvoiceDetails.InvoiceId);
+                else
+                    return BadRequest("An Error Has Occurred");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("deletelineitem/{lineitemid}")]
+        public async Task<IHttpActionResult> DeleteLineItem(long LineItemId)
+        {
+            try
+            {
+                var result = await _invoice.DeleteInvoiceLineItem(LineItemId);
+
+                if (result > 0)
+                    return Ok("Line Item Deleted!");
+                else
+                    return NotFound();
             }
             catch (Exception ex)
             {

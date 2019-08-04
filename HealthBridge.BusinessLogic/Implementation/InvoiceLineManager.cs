@@ -43,6 +43,22 @@ namespace HealthBridge.BusinessLogic.Implementation
             }
         }
 
+        //public async Task DeleteLineItem(long InvoiceLineID)
+        //{
+        //    try
+        //    {
+        //        var lineItem = _invoiceLineRepository.GetById(InvoiceLineID);
+
+        //        _invoiceLineRepository.Delete(lineItem);
+
+        //        await _invoiceLineRepository.Save();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message);
+        //    }
+        //}
+
         public async Task UpdateInvoiceLineItems(InvoiceLineDTO InvoiceLineItem)
         {
             try
@@ -65,6 +81,26 @@ namespace HealthBridge.BusinessLogic.Implementation
 
                     await _invoiceLineRepository.Save();
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task AddNewItemToExistingInvoiceLineItems(InvoiceLineDTO newLineItem)
+        {
+            try
+            {
+                InvoiceLine invoiceLineDB = new InvoiceLine();
+
+                invoiceLineDB.Code = newLineItem.Code;
+                invoiceLineDB.Description = newLineItem.Description;
+                invoiceLineDB.InvoiceId = newLineItem.InvoiceId;
+                invoiceLineDB.LineTotal = newLineItem.LineTotal;
+                invoiceLineDB.Qty = newLineItem.Qty;
+                _invoiceLineRepository.Insert(invoiceLineDB);
+                await _invoiceLineRepository.Save();
             }
             catch (Exception ex)
             {

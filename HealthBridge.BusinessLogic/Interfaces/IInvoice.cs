@@ -17,5 +17,7 @@ namespace HealthBridge.BusinessLogic.Interfaces
         Task<int> UpdateInvoice(InvoiceUpdateDTO compoundInvoice);
         Task<int> DeleteInvoiceLineItem(long InvoiceLineID);
         Task<CompoundInvoiceDTO> GetInvoiceWithLineItems(long invoiceId);
+
+        Task<int> AddItemToExistingInvoice(InvoiceUpdateDTO compoundInvoice);
     }
 }
