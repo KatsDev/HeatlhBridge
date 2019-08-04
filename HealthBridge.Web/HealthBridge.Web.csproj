@@ -317,6 +317,12 @@
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="Images\Gears.gif" />
+    <Content Include="Images\icon-help-150x150.gif" />
+    <Content Include="Images\icon-solution-1-150x150.gif" />
+    <Content Include="Images\logo-website-1.png" />
+    <Content Include="Images\Slider1.jpg" />
+    <Content Include="Images\Slider2.jpg" />
     <Content Include="Scripts\app\invoice.js" />
     <Content Include="Scripts\app\patientform.js" />
     <Content Include="Scripts\app\patients.js" />

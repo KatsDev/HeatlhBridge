@@ -15,3 +15,8 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.navbar-custom {
+    color: #FFFFFF;
+    background-color: #eb4034;
+}
