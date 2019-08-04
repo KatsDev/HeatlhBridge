@@ -192,6 +192,15 @@
                 });
                 return false;
             }
+
+            if (code.length > 10) {
+                    bootbox.alert({
+                    message: 'Code cannot be longer than 10 characters long.',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
             var newLineItem = {
                 InvoiceLineId: $("#tblColCount").val(),
                 QTY: qty,
@@ -359,6 +368,15 @@
                 return false;
             }
 
+            if (code.length > 10) {
+                    bootbox.alert({
+                    message: 'Code cannot be longer than 10 characters long.',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
+
             var invoiceDetail = {
                 InvoiceId: $("#hdInvoiceId").val(),
                 PatientId: $("#ddlPatient").val()
@@ -409,7 +427,16 @@
 
 
         $("#btnExistingInvoiceUpdateLineItem").click(function () {
+            var code = $("#txtQty").val();
 
+            if (code.length > 10) {
+                bootbox.alert({
+                message: 'Code cannot be longer than 10 characters long.',
+                size: 'small',
+                centerVertical: true
+            });
+                return false;
+            }
             for (var i in lineItems) {
                 if (lineItems[i].InvoiceLineId == $("#lineEditLineID").val()) {
                     lineItems[i].Description = $("#txtDescription").val();
