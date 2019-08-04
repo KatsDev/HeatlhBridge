@@ -23,7 +23,7 @@
                 <strong>Patient:</strong>
             </div>
             <div class="col-md-3">
-                @Html.DropDownListFor(x => x.InvoiceDetails.PatientId, new SelectList(ViewBag.PatientDropDown, "PatientId", "DisplayName"), "Select Patient", new { @class = "form-control", id = "ddlPatient" })
+                @Html.DropDownListFor(x => x.InvoiceDetails.PatientId, new SelectList(ViewBag.PatientDropDown, "PatientId", "DisplayName"), null, new { @class = "form-control", id = "ddlPatient" })
             </div>
         </div>
     </div>
@@ -134,33 +134,44 @@
 <input type="hidden" id="tblColCount" value="0" />
 @Html.HiddenFor(x => x.InvoiceDetails.InvoiceId, new { id = "hdInvoiceId" })
 <input type="hidden" id="lineEditLineID" value="" />
+@*@if (Model.InvoiceLineItems.Count > 0)
+    {
+        <input type="hidden" id"hdInitialLineID" value="@Model.InvoiceLineItems[0].InvoiceLineId" />
+    }
+    else
+    {
+        <input type="hidden" id"hdInitialLineID" value="" />
+    }*@
+
 
 @section scripts{
     <script>
         var lineItems = [];
-        $(document).ready(function () {
+    $(document).ready(function () {
+            $("#ddlPatient").attr("disabled", false);
             $("#btnUpdateLineItem").hide();
             $("#btnCancelLineItemUpdate").hide();
             $("#btnExistingInvoiceUpdateLineItem").hide();
             $("#btnExistingInvoiceCancelLineItemUpdate").hide();
-            if ($("#ddlPatient").val() !== '') {
+            var lineItemIDForUpdate;
+            if ($("#hdInitialLineID").val() != '') {
+                lineItemIDForUpdate= parseInt($("#hdInitialLineID").val());
+            }
+            console.log($("#ddlPatient").val());
+            if ($("#ddlPatient").val() !== '0') {
+                $("#ddlPatient").attr("disabled", true);
                 var uploadedList = @Html.Raw(Json.Encode(Model.InvoiceLineItems));
 
                 for (var i = 0; i < uploadedList.length; i++) {
-                    //
-                    if (i == 0) {
-
-                    } else {
-
-                    }
                     var newLineItem = {
-                            InvoiceLineId: @Model.InvoiceLineItems[i].InvoiceLineId,
-                            QTY: uploadedList[i].Qty,
-                            Code: uploadedList[i].Code,
-                            Description: uploadedList[i].Description,
-                            LineTotal: uploadedList[i].LineTotal
+                        InvoiceLineId: uploadedList[i].InvoiceLineId,
+                        QTY: uploadedList[i].Qty,
+                        Code: uploadedList[i].Code,
+                        Description: uploadedList[i].Description,
+                        LineTotal: uploadedList[i].LineTotal
                     }
                     lineItems.push(newLineItem);
+                    lineItemIDForUpdate++;
                 }
                 console.log(lineItems);
             }
@@ -297,6 +308,13 @@
             $("#btnAddLineItem").show();
         });
 
+        $("#btnExistingInvoiceCancelLineItemUpdate").click(function () {
+            ClearTextboxes();
+            $("#btnExistingInvoiceUpdateLineItem").hide();
+            $("#btnExistingInvoiceCancelLineItemUpdate").hide();
+            $("#btnExistingInvoiceAddItem").show();
+        });
+
         $("#btnUpdateLineItem").click(function () {
 
             for (var i in lineItems) {
@@ -319,6 +337,8 @@
             $("#btnCancelLineItemUpdate").hide();
             $("#btnAddLineItem").show();
         });
+
+
 
         $("#btnExistingInvoiceUpdateLineItem").click(function () {
 

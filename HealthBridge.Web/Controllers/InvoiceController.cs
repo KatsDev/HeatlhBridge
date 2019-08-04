@@ -72,7 +72,7 @@ namespace HealthBridge.Web.Controllers
                         readTask.Wait();
 
                         patientDropDownDisplay = readTask.Result;
-
+                        patientDropDownDisplay.Insert(0, new PatientDropDownDTO { DisplayName = "--Select Patient--", PatientId = 0 });
                         ViewBag.PatientDropDown = patientDropDownDisplay;
                     }
                 }
