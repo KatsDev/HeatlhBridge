@@ -103,16 +103,16 @@
                         {
                             foreach (var lineItem in Model.InvoiceLineItems)
                             {
-                                <tr id="@("lineItem" + i)">
-                                    <td id="@("qtytd" + i)">@lineItem.Qty</td>
-                                    <td id="@("codetd" + i)">@lineItem.Code</td>
-                                    <td id="@("desctd" + i)">@lineItem.Description</td>
-                                    <td id="@("linetottd" + i)">
-                                        R @lineItem.LineTotal.ToString().Replace(",", ".").Trim().Replace(".0000", ".00")
+                                <tr id="@("lineItem" + lineItem.InvoiceLineId)">
+                                    <td id="@("qtytd" + lineItem.InvoiceLineId)">@lineItem.Qty</td>
+                                    <td id="@("codetd" + lineItem.InvoiceLineId)">@lineItem.Code</td>
+                                    <td id="@("desctd" + lineItem.InvoiceLineId)">@lineItem.Description</td>
+                                    <td id="@("linetottd" + lineItem.InvoiceLineId)">
+                                        R @lineItem.LineTotal.ToString().Replace(",", ".").Trim()
                                     </td>
                                     <td>
-                                        <button type="button" onclick="EditLineItem(@i)" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;
-                                        <button onclick="DeleteLineItemFromTable(this, @i)" class="btn btn-danger btn-sm" style="width:45%">Delete</button>
+                                        <button type="button" onclick="EditLineItem(@lineItem.InvoiceLineId)" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;
+                                        <button onclick="DeleteLineItemFromTable(this, @lineItem.InvoiceLineId)" class="btn btn-danger btn-sm" style="width:45%">Delete</button>
                                     </td>
                                 </tr>
                             }
@@ -123,7 +123,7 @@
                 </div>
                 <div class="form-group">
                     <div class="pull-right">
-                        <label id="lblTotalInvoiceAmount">Total: R</label>
+                        <label id="lblTotalInvoiceAmount">Total: R @Model.InvoiceLineItems.Sum(x => x.LineTotal)</label>
                     </div>
                 </div>
             </div>
@@ -147,8 +147,14 @@
                 var uploadedList = @Html.Raw(Json.Encode(Model.InvoiceLineItems));
 
                 for (var i = 0; i < uploadedList.length; i++) {
+                    //
+                    if (i == 0) {
+
+                    } else {
+
+                    }
                     var newLineItem = {
-                            InvoiceLineId: i,
+                            InvoiceLineId: @Model.InvoiceLineItems[i].InvoiceLineId,
                             QTY: uploadedList[i].Qty,
                             Code: uploadedList[i].Code,
                             Description: uploadedList[i].Description,
@@ -156,7 +162,9 @@
                     }
                     lineItems.push(newLineItem);
                 }
+                console.log(lineItems);
             }
+
         });
 
         $("#ddlPatient").change(function () {
@@ -260,7 +268,8 @@
 
         function EditLineItem(el) {
             //lineEditMode
-            console.log($("#hdInvoiceId").val());
+            //$("#hdInvoiceId").val(el);
+            //console.log('HDLineID',$("#hdInvoiceId").val());
             if ($("#hdInvoiceId").val() != 0) {
                 $("#btnExistingInvoiceUpdateLineItem").show();
                 $("#btnExistingInvoiceCancelLineItemUpdate").show();
@@ -296,6 +305,7 @@
                     lineItems[i].QTY = $("#txtQty").val();
                     lineItems[i].LineTotal = $("#txtLineItemTotal").val();
                     lineItems[i].Code = $("#txtCode").val();
+
                     $("#desctd" + lineItems[i].InvoiceLineId).text(lineItems[i].Description);
                     $("#qtytd" + lineItems[i].InvoiceLineId).text(lineItems[i].QTY);
                     $("#codetd" + lineItems[i].InvoiceLineId).text(lineItems[i].Code);
@@ -304,6 +314,7 @@
                 }
             }
             ClearTextboxes();
+            $("#hdInvoiceId").val('');
             $("#btnUpdateLineItem").hide();
             $("#btnCancelLineItemUpdate").hide();
             $("#btnAddLineItem").show();
@@ -325,10 +336,68 @@
                 }
             }
             // Update the database here for this line item only
-            ClearTextboxes();
+
+            var invoiceDetail = {
+                InvoiceId: $("#hdInvoiceId").val(),
+                PatientId: $("#ddlPatient").val()
+            }
+
+            var invoiceLineItemToUpdate = {
+                InvoiceLineId: $("#lineEditLineID").val(),
+                InvoiceId: $("#hdInvoiceId").val(),
+                Qty: $("#txtQty").val(),
+                Code: $("#txtCode").val(),
+                Description: $("#txtDescription").val(),
+                LineTotal: $("#txtLineItemTotal").val()
+            }
+
+            console.log('Item To Update', invoiceLineItemToUpdate);
+
+            if ($("#ddlPatient").val() == '') {
+                bootbox.alert({
+                    message: 'Please select a patient',
+                    size: 'small',
+                    centerVertical: true
+                });
+                return false;
+            }
+            //Validate that a patient has been selected
+            //Validate that there are line items
+            //If 1 of the above validations fail do not save a new invoice
+            //Alert the user with validation errors
+            $.ajax(
+                {
+                    url: "/api/Invoices/updatepreviousinvoice/",
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({ InvoiceDetails: invoiceDetail, InvoiceLineItem: invoiceLineItemToUpdate }),
+                    success: function (result) {
+                        bootbox.alert({
+                            message: result,
+                            size: 'small',
+                            centerVertical: true
+                        });
+                        $("#desctd" + $("#lineEditLineID").val()).text($("#txtDescription").val());
+                        $("#qtytd" + $("#lineEditLineID").val()).text($("#txtQty").val());
+                        $("#codetd" + $("#lineEditLineID").val()).text($("#txtCode").val());
+                        $("#linetottd" + $("#lineEditLineID").val()).text('R ' + $("#txtLineItemTotal").val());
+                        ClearTextboxes();
+                        //$("#tblColCount").val(1);
+                        $("#lineEditLineID").val("");
+                        //lineItems = [];
+                        $("#lineEditLineID").text('');
+                        //$("#hdInvoiceId").val('');
+                        ClearTextboxes();
+                        console.log(lineItems);
+                        $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
+                    }
+                }
+            );
+
+
             $("#btnExistingInvoiceUpdateLineItem").hide();
-                $("#btnExistingInvoiceCancelLineItemUpdate").hide();
-                $("#btnExistingInvoiceAddItem").show();
+            $("#btnExistingInvoiceCancelLineItemUpdate").hide();
+            $("#btnExistingInvoiceAddItem").show();
         });
     </script>
 }

@@ -227,7 +227,7 @@ namespace HealthBridge.BusinessLogic.Implementation
                         lineItemsToAdd.Description = lineItem.Description;
                         lineItemsToAdd.InvoiceId = lineItem.InvoiceId;
                         lineItemsToAdd.InvoiceLineId = lineItem.InvoiceLineId;
-                        lineItemsToAdd.LineTotal = lineItem.LineTotal;
+                        lineItemsToAdd.LineTotal = Math.Round(lineItem.LineTotal, 2);
                         var Qty = Convert.ToDecimal(lineItem.Qty);
                         var QTYConvert = DataConverter.ToSingle(Qty);
                         lineItemsToAdd.Qty = QTYConvert;
