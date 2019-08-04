@@ -77,3 +77,43 @@ $('#tblInvoice').each(function () {
         $pager.insertAfter($table).find('span.page-number:first').addClass('active');
     }
 });
+
+function DeleteInvoice(el, invoiceID) {
+    bootbox.confirm({
+        message: "Are you sure to delete invoice: " + invoiceID + "?",
+        buttons: {
+            confirm: {
+                label: 'Yes',
+                className: 'btn-success'
+            },
+            cancel: {
+                label: 'No',
+                className: 'btn-danger'
+            }
+        },
+        callback: function (result) {
+            if (result)
+                $.ajax({
+                    url: '/api/Invoices/deleteInvoice/' + invoiceID,
+                    type: 'DELETE',
+                    success: function (data) {
+                        bootbox.alert({
+                            message: data,
+                            size: 'small',
+                            centerVertical: true
+                        });
+                        
+                        $(el).closest('tr').remove();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert("Status: " + textStatus); alert("Error: " + errorThrown);
+                        bootbox.alert({
+                            message: "Unable to delete invoice!",
+                            size: 'small',
+                            centerVertical: true
+                        });
+                    }
+                });
+        }
+    });
+}

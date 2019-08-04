@@ -42,7 +42,7 @@
                             <a class="btn btn-warning" href="@Url.Action("EditPatientInvoice","Invoice",new { invoiceId = item.InvoiceId})">
                                 Edit
                             </a>
-                            <button class="btn btn-danger" value="@item.InvoiceId" onclick="alert(@item.InvoiceId)">Delete</button>
+                            <button class="btn btn-danger" value="@item.InvoiceId" onclick="DeleteInvoice(this,@item.InvoiceId)">Delete</button>
                         </td>
                     </tr>
                 }

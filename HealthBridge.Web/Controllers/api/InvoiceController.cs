@@ -65,7 +65,7 @@ namespace HealthBridge.Web.Controllers.api
             {
                 var invoiceExists = await _invoice.GetIndividualInvoice(invoiceId);
 
-                if (invoiceExists != null)
+                if (invoiceExists == null)
                     return NotFound();
 
                 var result = await _invoice.DeleteInvoice(invoiceId);
