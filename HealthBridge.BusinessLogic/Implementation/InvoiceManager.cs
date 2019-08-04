@@ -141,11 +141,21 @@ namespace HealthBridge.BusinessLogic.Implementation
             {
                 var invoiceLineInDB = await _invoiceLineRepository.GetById(InvoiceLineID);
 
+                Invoice InvoiceInDB = new Invoice();
+
+                InvoiceInDB = await _invoiceRepository.GetById(invoiceLineInDB.InvoiceId);
+
                 if (invoiceLineInDB != null)
                 {
                     _invoiceLineRepository.Delete(InvoiceLineID);
 
                     var result = await _invoiceLineRepository.Save();
+
+                    decimal invoiceTotalAmount = await _invoiceManager.CalculateInvoiceTotal(invoiceLineInDB.InvoiceId);
+
+                    InvoiceInDB.InvoiceTotal = invoiceTotalAmount;
+
+                    _invoiceRepository.Update(InvoiceInDB);
 
                     return result;
                 }

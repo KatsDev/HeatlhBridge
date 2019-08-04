@@ -342,6 +342,7 @@
             $("#btnUpdateLineItem").hide();
             $("#btnCancelLineItemUpdate").hide();
             $("#btnAddLineItem").show();
+            $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
         });
 
         $("#btnExistingInvoiceAddItem").click(function () {
@@ -371,6 +372,7 @@
                 Description: $("#txtDescription").val(),
                 LineTotal: $("#txtLineItemTotal").val()
             }
+            lineItems.push(invoiceLineItemToAdd);
 
             $.ajax(
             {
@@ -388,14 +390,17 @@
                     $("#qtytd" + $("#lineEditLineID").val()).text($("#txtQty").val());
                     $("#codetd" + $("#lineEditLineID").val()).text($("#txtCode").val());
                     $("#linetottd" + $("#lineEditLineID").val()).text('R ' + $("#txtLineItemTotal").val());
-                    ClearTextboxes();
-                    //$("#tblColCount").val(1);
                     $("#lineEditLineID").val("");
-                    //lineItems = [];
                     $("#lineEditLineID").text('');
-                    //$("#hdInvoiceId").val('');
                     ClearTextboxes();
-                    console.log(lineItems);
+                    var currColCount = parseInt($("#tblColCount").val());
+                    $('#tblLineItems > tbody:first').append('<tr id="lineItem' + currColCount + '"><td id="qtytd' + currColCount + '">' + qty + '</td><td id="codetd' + currColCount + '">' + code + '</td><td id="desctd' + currColCount + '">' + description + '</td><td id="linetottd' + currColCount + '">R ' + lineTotal +
+                    '</td><td><button type="button" onclick="EditLineItem(' + currColCount + ')" class="btn btn-warning btn-sm" style="width:45%">Edit</button>&nbsp;&nbsp;<button onclick="DeleteLineItemFromTable(this, ' + currColCount + ')" class="btn btn-danger btn-sm" style="width:45%">Delete</button></td></tr>');
+
+                    var newColCount = parseInt($("#tblColCount").val());
+                    newColCount = newColCount + 1;
+                    $("#tblColCount").val(newColCount);
+                    ClearTextboxes();
                     $("#lblTotalInvoiceAmount").text('Total: R ' + lineItems.reduce((a, b) => +a + +b.LineTotal, 0));
                 }
             });
